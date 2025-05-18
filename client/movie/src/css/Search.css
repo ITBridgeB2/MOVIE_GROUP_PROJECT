@@ -40,23 +40,26 @@ input[type="text"]:focus {
   border-color: #666;
 }
 
-div {
+/* Scoped results container styles */
+.results-container {
   margin-top: 10px;
 }
 
-div > div {
+.results-container > div {
   background-color: #333;
   padding: 10px;
   margin-bottom: 10px;
   border-radius: 5px;
   transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
 }
 
-div > div:hover {
+.results-container > div:hover {
   background-color: #444;
 }
 
-div > div strong {
+.results-container > div strong {
   font-size: 1.2rem;
   color: #e5e5e5;
 }
@@ -65,4 +68,10 @@ div > div strong {
   color: #999;
   margin-left: 5px;
   font-style: italic;
+}
+
+/* Highlight active suggestion for keyboard navigation */
+.active-suggestion {
+  background-color: #555;
+  outline: 2px solid #FFD700;
 }

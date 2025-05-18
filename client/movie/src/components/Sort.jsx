@@ -6,7 +6,8 @@ function Sort({ sortOption, setSortOption }) {
   <option value="">Sort By</option>
   <option value="titleAsc">Title (A-Z)</option>       {/* Changed */}
   <option value="titleDesc">Title (Z-A)</option>      {/* Changed */}
-   
+   <option value = "yearAsc">Year Ascending</option>
+   <option value = "yearDesc">Year Descending</option>
      {/* Add this */}
 </select>
 

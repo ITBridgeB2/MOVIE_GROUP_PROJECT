@@ -1,33 +1,32 @@
 import '../css/AddMovieForm.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Ratings from '../components/Ratings';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const currentYear = new Date().getFullYear();
 
 const AddMovieForm = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
+  const modalRef = useRef(null);
 
   const [form, setForm] = useState({
     title: '',
     genre: '',
     release_year: '',
-    language: '',
     notes: '',
     rating: 0,
   });
 
   const [errors, setErrors] = useState({});
 
-  // Reset form & errors when modal opens
   useEffect(() => {
     if (isOpen) {
       setForm({
         title: '',
         genre: '',
         release_year: '',
-        language: '',
         notes: '',
         rating: 0,
       });
@@ -35,27 +34,85 @@ const AddMovieForm = ({ isOpen, onClose }) => {
     }
   }, [isOpen]);
 
-  const validateField = (name, value) => {
-    let error = '';
-    if (name === 'title' && !value.trim()) {
-      error = 'Title is required.';
-    }
-    if (name === 'genre' && !value.trim()) {
-      error = 'Genre is required.';
-    }
-    if (name === 'release_year') {
-      if (!value) {
-        error = 'Release Year is required.';
-      } else {
-        const yearNum = Number(value);
-        if (isNaN(yearNum) || yearNum < 1900 || yearNum > currentYear) {
-          error = `Year must be between 1900 and ${currentYear}.`;
+  useEffect(() => {
+    const focusableSelectors = [
+      'a[href]',
+      'button:not([disabled])',
+      'textarea:not([disabled])',
+      'input:not([disabled])',
+      'select:not([disabled])',
+      '[tabindex]:not([tabindex="-1"])'
+    ];
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll(focusableSelectors);
+        const firstEl = focusableElements[0];
+        const lastEl = focusableElements[focusableElements.length - 1];
+
+        if (!e.shiftKey && document.activeElement === lastEl) {
+          e.preventDefault();
+          firstEl.focus();
+        } else if (e.shiftKey && document.activeElement === firstEl) {
+          e.preventDefault();
+          lastEl.focus();
         }
       }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      setTimeout(() => {
+        const firstInput = modalRef.current?.querySelector('input, select, textarea, button');
+        firstInput?.focus();
+      }, 0);
     }
-    if (name === 'language' && !value.trim()) {
-      error = 'Language is required.';
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  const validateField = (name, value) => {
+    let error = '';
+    const trimmed = value.trim();
+
+    if (name === 'title') {
+      if (!trimmed) {
+        error = 'Title is required.';
+      } else if (/^-?\d+$/.test(trimmed)) {
+        error = 'Title cannot contain only numbers.';
+      } else if (/^-\d/.test(trimmed)) {
+        error = 'Title cannot start with a negative number.';
+      }
     }
+
+    if (name === 'genre') {
+      if (!trimmed) {
+        error = 'Genre is required.';
+      }
+    }
+
+    if (name === 'release_year') {
+      const year = Number(value);
+      if (!trimmed) {
+        error = 'Release year is required.';
+      } else if (isNaN(year) || year < 1900 || year > currentYear) {
+        error = `Year must be between 1900 and ${currentYear}.`;
+      }
+    }
+
+    if (name === 'notes') {
+      const len = value.length;
+      if (len > 0 && (len < 150 || len > 300)) {
+        error = 'Notes must be between 150 and 300 characters.';
+      }
+    }
+
     return error;
   };
 
@@ -87,7 +144,7 @@ const AddMovieForm = ({ isOpen, onClose }) => {
     const formDataToSend = {
       ...form,
       genre: form.genre.trim().toLowerCase(),
-      language: form.language.trim().toLowerCase(),
+      
     };
 
     try {
@@ -97,12 +154,11 @@ const AddMovieForm = ({ isOpen, onClose }) => {
         title: '',
         genre: '',
         release_year: '',
-        language: '',
         notes: '',
         rating: 0,
       });
       setErrors({});
-      onClose(); // close the modal
+      onClose();
       navigate('/');
     } catch (error) {
       if (error.response?.data?.message) {
@@ -113,79 +169,104 @@ const AddMovieForm = ({ isOpen, onClose }) => {
     }
   };
 
-  if (!isOpen) return null; // Don't render if not open
-
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="modal-content"
-        onClick={(e) => e.stopPropagation()} // Prevent closing modal when clicking inside form
-      >
-        <form onSubmit={handleSubmit} className="add-movie-form">
-          <h2>Add Movie</h2>
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="modal-overlay"
+          onClick={onClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3, ease: 'easeIn' }}
+        >
+          <motion.div
+            className="modal-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-movie-title"
+            onClick={(e) => e.stopPropagation()}
+            ref={modalRef}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 20, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeIn' }}
+          >
+            <form onSubmit={handleSubmit} className="add-movie-form">
+              <h2 id="add-movie-title">Add Movie</h2>
 
-          <label htmlFor="title">Title *</label>
-          <input
-            type="text"
-            name="title"
-            id="title"
-            value={form.title}
-            onChange={handleChange}
-          />
-          {errors.title && <div className="error">{errors.title}</div>}
+              <label htmlFor="title">Title *</label>
+              <input
+                type="text"
+                name="title"
+                id="title"
+                aria-label="Movie title"
+                placeholder="Enter movie title"
+                value={form.title}
+                onChange={handleChange}
+                className={errors.title ? 'input-error' : ''}
+              />
+              {errors.title && <div className="error">{errors.title}</div>}
 
-          <label htmlFor="genre">Genre *</label>
-          <input
-            type="text"
-            name="genre"
-            id="genre"
-            value={form.genre}
-            onChange={handleChange}
-            placeholder="e.g., action"
-          />
-          {errors.genre && <div className="error">{errors.genre}</div>}
+              <label htmlFor="genre">Genre *</label>
+              <select
+                name="genre"
+                id="genre"
+                aria-label="Genre"
+                value={form.genre}
+                onChange={handleChange}
+                className={errors.genre ? 'input-error' : ''}
+              >
+                <option value="">Select Genre</option>
+                <option value="Sci-Fi">Sci-Fi</option>
+                <option value="Drama">Drama</option>
+                <option value="Comedy">Comedy</option>
+                <option value="Action">Action</option>
+                <option value="Other">Other</option>
+              </select>
+              {errors.genre && <div className="error">{errors.genre}</div>}
 
-          <label htmlFor="release_year">Release Year *</label>
-          <input
-            type="number"
-            name="release_year"
-            id="release_year"
-            value={form.release_year}
-            onChange={handleChange}
-            min="1900"
-            max={currentYear}
-          />
-          {errors.release_year && <div className="error">{errors.release_year}</div>}
+              <label htmlFor="release_year">Release Year *</label>
+              <input
+                type="text"
+                name="release_year"
+                id="release_year"
+                aria-label="Release year"
+                placeholder="Year between 1900 to 2025"
+                value={form.release_year}
+                onChange={handleChange}
+                min="1900"
+                max={currentYear}
+                className={errors.release_year ? 'input-error' : ''}
+              />
+              {errors.release_year && <div className="error">{errors.release_year}</div>}
 
-          <label htmlFor="language">Language *</label>
-          <input
-            type="text"
-            name="language"
-            id="language"
-            value={form.language}
-            onChange={handleChange}
-            placeholder="e.g., english"
-          />
-          {errors.language && <div className="error">{errors.language}</div>}
+              <Ratings initialRating={form.rating} onRatingChange={handleRatingChange} />
 
-          <Ratings initialRating={form.rating} onRatingChange={handleRatingChange} />
+              <label htmlFor="notes">Notes (optional)</label>
+              <textarea
+                name="notes"
+                id="notes"
+                aria-label="Movie notes"
+                placeholder="Write something about the movie (150–300 characters)..."
+                value={form.notes}
+                onChange={handleChange}
+                rows="4"
+                minLength={150}
+                maxLength={300}
+                className={errors.notes ? 'input-error' : ''}
+              />
+              {errors.notes && <div className="error">{errors.notes}</div>}
 
-          <label htmlFor="notes">Notes (optional)</label>
-          <textarea
-            name="notes"
-            id="notes"
-            value={form.notes}
-            onChange={handleChange}
-            rows="3"
-          />
-
-          <div className="form-actions">
-            <button type="submit">Submit</button>
-            <button type="button" onClick={onClose}>Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
+              <div className="form-actions">
+                <button type="submit">Submit</button>
+                <button type="button" onClick={onClose}>Cancel</button>
+              </div>
+            </form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 

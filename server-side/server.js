@@ -28,10 +28,10 @@ initializeDatabase();
 
 // ✅ Add a movie
 app.post('/movies', async (req, res) => {
-  const { title, genre, release_year, notes, language, rating } = req.body;
-  const sql = 'INSERT INTO movies (title, genre, release_year, notes, language, rating) VALUES (?, ?, ?, ?, ?, ?)';
+  const { title, genre, release_year, notes, rating } = req.body;
+  const sql = 'INSERT INTO movies (title, genre, release_year, notes, rating) VALUES (?, ?, ?, ?, ?)';
   try {
-    const [result] = await db.execute(sql, [title, genre, release_year, notes, language, rating]);
+    const [result] = await db.execute(sql, [title, genre, release_year, notes, rating]);
     res.status(201).json({ message: 'Movie added successfully', movieId: result.insertId });
   } catch (err) {
     console.error('Error inserting movie:', err);
@@ -47,15 +47,16 @@ app.get('/api/movies/filters', async (req, res) => {
     const [years] = await db.query('SELECT DISTINCT release_year FROM movies');
 
     res.json({
-      genres: genres.map(row => row.genre),
-      languages: languages.map(row => row.language),
-      years: years.map(row => row.release_year),
+      genres: genres.map((row) => row.genre),
+      languages: languages.map((row) => row.language),
+      years: years.map((row) => row.release_year),
     });
   } catch (err) {
     console.error('Error fetching filters:', err);
     res.status(500).send('Filter fetch error');
   }
 });
+
 
 // ✅ Get movies (search + filters + sort)
 app.get('/api/movies', async (req, res) => {
@@ -65,7 +66,7 @@ app.get('/api/movies', async (req, res) => {
 
   if (q) {
     query += ' AND (LOWER(title) LIKE ? OR LOWER(genre) LIKE ?)';
-    const searchTerm = `${q.toLowerCase()}%`;
+    const searchTerm = `%${q.toLowerCase()}%`; // ✅ updated for partial search
     params.push(searchTerm, searchTerm);
   }
 
@@ -84,10 +85,23 @@ app.get('/api/movies', async (req, res) => {
     params.push(year);
   }
 
+  // ✅ Enhanced Sorting Logic
   if (sort === 'titleAsc') {
-    query += ' ORDER BY title ASC';
+    query += `
+      ORDER BY 
+        CASE WHEN title REGEXP '^[0-9]' THEN 1 ELSE 0 END,
+        title ASC
+    `;
   } else if (sort === 'titleDesc') {
-    query += ' ORDER BY title DESC';
+    query += `
+      ORDER BY 
+        CASE WHEN title REGEXP '^[0-9]' THEN 1 ELSE 0 END,
+        title DESC
+    `;
+  } else if (sort === "yearAsc") {
+    query += ' ORDER BY release_year ASC';
+  } else if (sort === "yearDesc") {
+    query += ' ORDER BY release_year DESC';
   }
 
   try {
@@ -99,6 +113,7 @@ app.get('/api/movies', async (req, res) => {
   }
 });
 
+
 // ✅ Search movies (used for type-ahead search)
 app.get('/movies', async (req, res) => {
   const searchQuery = req.query.q;
@@ -107,7 +122,7 @@ app.get('/movies', async (req, res) => {
   try {
     const [rows] = await db.query(
       'SELECT id, title, genre FROM movies WHERE LOWER(title) LIKE ? OR LOWER(genre) LIKE ? LIMIT 10',
-      [`${searchQuery.toLowerCase()}%`, `${searchQuery.toLowerCase()}%`]
+      [`%${searchQuery.toLowerCase()}%`, `%${searchQuery.toLowerCase()}%`] // <-- partial search fix here
     );
     res.json(rows);
   } catch (err) {
@@ -115,7 +130,6 @@ app.get('/movies', async (req, res) => {
     res.status(500).send('Server error');
   }
 });
-
 // ✅ Get movie by ID
 app.get('/movies/:id', async (req, res) => {
   try {
@@ -146,13 +160,24 @@ app.put('/movie/:id', async (req, res) => {
 
 // ✅ Update only rating
 app.put('/movies/:id/rating', async (req, res) => {
+  const { id } = req.params;
   const { rating } = req.body;
+
+  if (typeof rating !== 'number' || rating < 0 || rating > 5) {
+    return res.status(400).json({ error: 'Rating must be a number between 0 and 5' });
+  }
+
   try {
-    await db.query('UPDATE movies SET rating = ? WHERE id = ?', [rating, req.params.id]);
-    res.json({ success: true });
+    const [result] = await db.query('UPDATE movies SET rating = ? WHERE id = ?', [rating, id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Movie not found' });
+    }
+
+    res.json({ success: true, rating });
   } catch (err) {
     console.error('Error updating rating:', err);
-    res.status(500).send('Server error');
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom'; // ✅ No duplication
 import axios from 'axios';
 import '../css/MovieDetails.css';
 import Ratings from '../components/Ratings';
 import EditDeleteForm from '../components/EditDeleteForm';
+import toast from 'react-hot-toast';
 
 function MovieDetail() {
   const { id } = useParams();
@@ -21,7 +22,7 @@ function MovieDetail() {
     if (window.confirm('Delete this movie?')) {
       axios.delete(`http://localhost:5000/movie/${id}`) // <-- consistent DELETE endpoint
         .then(() => {
-          alert('Movie deleted.');
+          toast.success('Movie deleted.');
           navigate('/');
         })
         .catch(err => console.error('Error deleting movie:', err));
@@ -49,6 +50,19 @@ function MovieDetail() {
 
   return (
     <div className="app">
+       <button
+    onClick={() => navigate(-1)}
+    style={{
+      padding: '0.4rem 0.8rem',
+      backgroundColor: 'black',
+      border: 'none',
+      borderRadius: '5px',
+      cursor: 'pointer',
+      color:'yellow'
+    }}
+  >
+    ← Back
+  </button>
       <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>🎬 Movie Details</h2>
 
       {isEditing ? (
@@ -60,10 +74,22 @@ function MovieDetail() {
         />
       ) : (
         <div className="movie-card-detail">
-          <h1>{movie.title}</h1>
-          <p><strong>Genre:</strong> {movie.genre}</p>
+         
+<div style={{
+  maxWidth: '100%',
+  padding: '0 1rem',}}>
+  <h1 style={{
+    fontSize: movie.title.length > 60 ? '1.4rem' : '2rem',
+    textAlign: 'center',
+    whiteSpace: 'normal',
+    overflowWrap: 'break-word',
+  }}>
+    {movie.title}
+  </h1>
+</div>
+        <p><strong>Genre:</strong> {movie.genre}</p>
           <p><strong>Year:</strong> {movie.release_year}</p>
-          <Ratings initialRating={movie.rating} disabled />
+         <Ratings initialRating={movie.rating} movieId={movie.id} onRatingChange={(newRating) => setMovie(prev => ({ ...prev, rating: newRating }))}/>
           <p><strong>Language:</strong> {movie.language}</p>
           <p><strong>Notes:</strong> {movie.notes || 'N/A'}</p>
           <p><strong>Added:</strong> {new Date(movie.created_at).toLocaleString()}</p>
