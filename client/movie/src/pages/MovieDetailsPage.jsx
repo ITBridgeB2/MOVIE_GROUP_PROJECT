@@ -90,7 +90,7 @@ function MovieDetail() {
         <p><strong>Genre:</strong> {movie.genre}</p>
           <p><strong>Year:</strong> {movie.release_year}</p>
          <Ratings initialRating={movie.rating} movieId={movie.id} onRatingChange={(newRating) => setMovie(prev => ({ ...prev, rating: newRating }))}/>
-          <p><strong>Language:</strong> {movie.language}</p>
+          
           <p><strong>Notes:</strong> {movie.notes || 'N/A'}</p>
           <p><strong>Added:</strong> {new Date(movie.created_at).toLocaleString()}</p>
 

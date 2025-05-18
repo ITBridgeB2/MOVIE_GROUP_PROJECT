@@ -43,12 +43,12 @@ app.post('/movies', async (req, res) => {
 app.get('/api/movies/filters', async (req, res) => {
   try {
     const [genres] = await db.query('SELECT DISTINCT genre FROM movies');
-    const [languages] = await db.query('SELECT DISTINCT language FROM movies');
+    //const [languages] = await db.query('SELECT DISTINCT language FROM movies');
     const [years] = await db.query('SELECT DISTINCT release_year FROM movies');
 
     res.json({
       genres: genres.map((row) => row.genre),
-      languages: languages.map((row) => row.language),
+     // languages: languages.map((row) => row.language),
       years: years.map((row) => row.release_year),
     });
   } catch (err) {
@@ -60,7 +60,7 @@ app.get('/api/movies/filters', async (req, res) => {
 
 // ✅ Get movies (search + filters + sort)
 app.get('/api/movies', async (req, res) => {
-  const { genre, language, year, sort, q } = req.query;
+  const { genre, year, sort, q } = req.query;
   let query = 'SELECT * FROM movies WHERE 1=1';
   const params = [];
 
@@ -75,10 +75,6 @@ app.get('/api/movies', async (req, res) => {
     params.push(genre);
   }
 
-  if (language) {
-    query += ' AND language = ?';
-    params.push(language);
-  }
 
   if (year) {
     query += ' AND release_year = ?';
@@ -145,11 +141,11 @@ app.get('/movies/:id', async (req, res) => {
 // ✅ Update movie
 app.put('/movie/:id', async (req, res) => {
   const movieId = req.params.id;
-  const { title, genre, release_year, rating, notes, language } = req.body;
-  const sql = 'UPDATE movies SET title=?, genre=?, release_year=?, rating=?, notes=?, language=? WHERE id=?';
+  const { title, genre, release_year, rating, notes } = req.body;
+  const sql = 'UPDATE movies SET title=?, genre=?, release_year=?, rating=?, notes=? WHERE id=?';
 
   try {
-    const [result] = await db.query(sql, [title, genre, release_year, rating, notes, language, movieId]);
+    const [result] = await db.query(sql, [title, genre, release_year, rating, notes, movieId]);
     if (result.affectedRows === 0) return res.status(404).json({ message: 'Movie not found' });
     res.json({ message: 'Movie updated successfully' });
   } catch (err) {

@@ -37,7 +37,7 @@ function MovieList({ movies }) {
             <p><strong>Genre:</strong> {capitalize(movie.genre)}</p>
             <p><strong>Year:</strong> {movie.release_year}</p>
             <p><strong>Rating:</strong> {renderStars(movie.rating)}</p>
-            <p><strong>Language:</strong> {capitalize(movie.language)}</p>
+           
           </div>
         ))}
       </div>

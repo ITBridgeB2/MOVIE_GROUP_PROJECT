@@ -4,6 +4,7 @@ import axios from 'axios';
 import Ratings from '../components/Ratings';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 const currentYear = new Date().getFullYear();
 
@@ -149,7 +150,7 @@ const AddMovieForm = ({ isOpen, onClose }) => {
 
     try {
       await axios.post('http://localhost:5000/movies', formDataToSend);
-      alert('Movie saved successfully!');
+      toast.success('Movie saved successfully!');
       setForm({
         title: '',
         genre: '',
