@@ -91,7 +91,12 @@ function MovieDetail() {
           <p><strong>Year:</strong> {movie.release_year}</p>
          <Ratings initialRating={movie.rating} movieId={movie.id} onRatingChange={(newRating) => setMovie(prev => ({ ...prev, rating: newRating }))}/>
           
-          <p><strong>Notes:</strong> {movie.notes || 'N/A'}</p>
+          <p><strong>Notes:</strong> <span style={{
+    fontSize: movie.title.length > 60 ? '1.4rem' : '1.3rem',
+    textAlign: 'center',
+    whiteSpace: 'normal',
+    overflowWrap: 'break-word',
+  }}> {movie.notes || 'N/A'}</span></p>
           <p><strong>Added:</strong> {new Date(movie.created_at).toLocaleString()}</p>
 
           <div className="button-group-detail">

@@ -163,9 +163,9 @@ const AddMovieForm = ({ isOpen, onClose }) => {
       navigate('/');
     } catch (error) {
       if (error.response?.data?.message) {
-        alert('Error: ' + error.response.data.message);
+       toast.error('Error: ' + error.response.data.message);
       } else {
-        alert('Network or server error occurred.');
+        toast.error('Network or server error occurred.');
       }
     }
   };

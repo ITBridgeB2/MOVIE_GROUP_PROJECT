@@ -56,27 +56,7 @@ function EditDeleteForm({ movie, onClose, onMovieUpdated, onMovieDeleted }) {
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this movie?')) return;
-
-    try {
-      const res = await fetch(`http://localhost:5000/movie/${movie.id}`, {
-        method: 'DELETE',
-      });
-
-      const result = await res.json();
-      if (res.ok) {
-        toast.success('Movie deleted!');
-        navigate('/');
-        onMovieDeleted();
-      } else {
-        toast.error(result.error || 'Delete failed.');
-      }
-    } catch (err) {
-      toast.error('Network error.');
-    }
-  };
-
+  
  const handleKeyDown = useCallback((e) => {
   if (e.key === 'Escape') onClose();
 }, [onClose]);
@@ -163,7 +143,7 @@ function EditDeleteForm({ movie, onClose, onMovieUpdated, onMovieDeleted }) {
           <div className="buttons">
             <button className="save-btn" onClick={handleUpdate}>Save</button>
             <button className="cancel-btn" onClick={onClose}>Cancel</button>
-            <button className="delete-btn" onClick={handleDelete}>Delete</button>
+            
           </div>
         </motion.div>
       </motion.div>
