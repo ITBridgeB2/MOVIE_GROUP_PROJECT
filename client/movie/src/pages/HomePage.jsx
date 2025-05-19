@@ -51,18 +51,23 @@ function HomePage() {
         <div>
           <Search></Search>
         </div>
-        <div className="filterSorting" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-          <Filter
-            filters={filters}
-            selectedGenre={selectedGenre}
-            setSelectedGenre={setSelectedGenre}
-            selectedLanguage={selectedLanguage}
-            setSelectedLanguage={setSelectedLanguage}
-            selectedYear={selectedYear}
-            setSelectedYear={setSelectedYear}
-          />
-          <Sort sortOption={sortOption} setSortOption={setSortOption} />
-        </div>
+        <div className="filterSorting">
+  <div className="filterGroup">
+    <Filter
+      filters={filters}
+      selectedGenre={selectedGenre}
+      setSelectedGenre={setSelectedGenre}
+      selectedLanguage={selectedLanguage}
+      setSelectedLanguage={setSelectedLanguage}
+      selectedYear={selectedYear}
+      setSelectedYear={setSelectedYear}
+    />
+  </div>
+  <div className="sortGroup">
+    <Sort sortOption={sortOption} setSortOption={setSortOption} />
+  </div>
+</div>
+
 
         <h2>All Movies</h2>
         <MovieList movies={movies} />
