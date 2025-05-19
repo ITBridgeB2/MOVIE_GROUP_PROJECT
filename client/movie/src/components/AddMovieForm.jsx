@@ -109,8 +109,8 @@ const AddMovieForm = ({ isOpen, onClose }) => {
 
     if (name === 'notes') {
       const len = value.length;
-      if (len > 0 && (len < 150 || len > 300)) {
-        error = 'Notes must be between 150 and 300 characters.';
+      if (len > 0 && ( len > 300)) {
+        error = 'Notes must be max 300 characters.';
       }
     }
 
@@ -249,11 +249,11 @@ const AddMovieForm = ({ isOpen, onClose }) => {
                 name="notes"
                 id="notes"
                 aria-label="Movie notes"
-                placeholder="Write something about the movie (150–300 characters)..."
+                placeholder="Write something about the movie ( max 300 characters)..."
                 value={form.notes}
                 onChange={handleChange}
                 rows="4"
-                minLength={150}
+                
                 maxLength={300}
                 className={errors.notes ? 'input-error' : ''}
               />
