@@ -160,7 +160,7 @@ const AddMovieForm = ({ isOpen, onClose }) => {
       });
       setErrors({});
       onClose();
-      navigate('/');
+      navigate(0);
     } catch (error) {
       if (error.response?.data?.message) {
        toast.error('Error: ' + error.response.data.message);
